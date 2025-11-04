@@ -97,149 +97,147 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col p-4">
-      <div className="flex flex-col items-center pt-8 pb-4 space-y-3">
-        <Image
-          src="/logo.png"
-          alt="THE 1200 Logo"
-          width={200}
-          height={80}
-          priority
-          className="h-auto"
-        />
-        <p className="text-muted-foreground text-sm font-medium italic">
-          20 min a day for 20 hours = ✨ Your new habit! ✨
-        </p>
-      </div>
-      <div className="flex flex-1 items-center justify-center">
-        <div className="w-full max-w-md space-y-6">
-          <div className="text-center space-y-4">
-            <h1 className="text-2xl font-bold">Welcome</h1>
-            <p className="text-muted-foreground mt-2">
-              Sign in to your account or create a new one
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-4">
+          <div className="flex flex-col items-center space-y-3">
+            <Image
+              src="/logo.png"
+              alt="THE 1200 Logo"
+              width={200}
+              height={80}
+              priority
+              className="h-auto"
+            />
+            <p className="text-muted-foreground text-sm font-medium italic">
+              20 min a day for 20 hours = ✨ Your new habit! ✨
             </p>
           </div>
-
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Log In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="login">
-              <Form {...loginForm}>
-                <form
-                  onSubmit={loginForm.handleSubmit(onLoginSubmit)}
-                  className="space-y-4"
-                >
-                  {error && (
-                    <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                      {error}
-                    </div>
-                  )}
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="you@example.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Enter your password"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Logging in..." : "Log In"}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <Form {...signupForm}>
-                <form
-                  onSubmit={signupForm.handleSubmit(onSignupSubmit)}
-                  className="space-y-4"
-                >
-                  {error && (
-                    <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                      {error}
-                    </div>
-                  )}
-                  {success && (
-                    <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
-                      {success}
-                    </div>
-                  )}
-                  <FormField
-                    control={signupForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="email"
-                            placeholder="you@example.com"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={signupForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="At least 8 characters"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Sign Up"}
-                  </Button>
-                  <p className="text-xs text-muted-foreground text-center">
-                    By signing up, a profile will be automatically created for
-                    you.
-                  </p>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
+          <h1 className="text-2xl font-bold">Welcome</h1>
+          <p className="text-muted-foreground mt-2">
+            Sign in to your account or create a new one
+          </p>
         </div>
+
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Log In</TabsTrigger>
+            <TabsTrigger value="signup">Sign Up</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="login">
+            <Form {...loginForm}>
+              <form
+                onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                className="space-y-4"
+              >
+                {error && (
+                  <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="you@example.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Logging in..." : "Log In"}
+                </Button>
+              </form>
+            </Form>
+          </TabsContent>
+
+          <TabsContent value="signup">
+            <Form {...signupForm}>
+              <form
+                onSubmit={signupForm.handleSubmit(onSignupSubmit)}
+                className="space-y-4"
+              >
+                {error && (
+                  <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+                {success && (
+                  <div className="rounded-md bg-green-500/15 p-3 text-sm text-green-600 dark:text-green-400">
+                    {success}
+                  </div>
+                )}
+                <FormField
+                  control={signupForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="you@example.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={signupForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="At least 8 characters"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Creating account..." : "Sign Up"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  By signing up, a profile will be automatically created for
+                  you.
+                </p>
+              </form>
+            </Form>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

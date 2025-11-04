@@ -7,6 +7,7 @@ import Link from "next/link";
 import { isAdmin } from "@/lib/supabase/admin";
 import { LogOutIcon } from "lucide-react";
 import { signOut } from "@/app/actions";
+import Image from "next/image";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -84,13 +85,25 @@ export default async function HomePage() {
       />
 
       <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">
-            {profile?.first_name} {profile?.last_name}&apos;s Habits
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Track your progress toward 1200 minutes
-          </p>
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <Image
+              src="/logo.png"
+              alt="THE 1200 Logo"
+              width={120}
+              height={48}
+              priority
+              className="h-auto"
+            />
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">
+              {profile?.first_name} {profile?.last_name}&apos;s Habits
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Track your progress toward 1200 minutes
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {(await isAdmin()) && (
