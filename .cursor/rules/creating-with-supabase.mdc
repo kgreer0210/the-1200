@@ -1,0 +1,7 @@
+---
+alwaysApply: true
+---
+
+- Rules for building with supabase
+
+* Use the supabase mcp and local migration strategy as needed when making any updates to the application.
