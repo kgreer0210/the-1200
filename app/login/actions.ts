@@ -36,12 +36,12 @@ export async function login(formData: FormData) {
     .single();
 
   revalidatePath("/", "layout");
-  
+
   // If profile is incomplete, redirect to onboarding
   if (!profile?.first_name || !profile?.last_name) {
     redirect("/onboarding");
   }
-  
+
   redirect("/");
 }
 
@@ -88,11 +88,11 @@ export async function signup(formData: FormData) {
     .single();
 
   revalidatePath("/", "layout");
-  
+
   // If profile is incomplete, redirect to onboarding
   if (!profile?.first_name || !profile?.last_name) {
     redirect("/onboarding");
   }
-  
+
   redirect("/");
 }

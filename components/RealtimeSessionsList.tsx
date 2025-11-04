@@ -46,8 +46,6 @@ export function RealtimeSessionsList({
           filter: `habit_id=eq.${habitId}`,
         },
         (payload) => {
-          console.log("Realtime update received:", payload);
-
           // Update local state immediately for better UX
           // Only handle completed sessions
           if (payload.eventType === "INSERT") {
@@ -59,7 +57,10 @@ export function RealtimeSessionsList({
           } else if (payload.eventType === "UPDATE") {
             const updatedSession = payload.new as Session;
             // If session was completed, add it; if it changed from completed to active/paused, remove it
-            if (updatedSession.status === "completed" && updatedSession.minutes) {
+            if (
+              updatedSession.status === "completed" &&
+              updatedSession.minutes
+            ) {
               setSessions((prev) => {
                 const exists = prev.find((s) => s.id === updatedSession.id);
                 if (exists) {
@@ -74,11 +75,15 @@ export function RealtimeSessionsList({
               });
             } else {
               // Remove if it's no longer completed
-              setSessions((prev) => prev.filter((s) => s.id !== updatedSession.id));
+              setSessions((prev) =>
+                prev.filter((s) => s.id !== updatedSession.id)
+              );
             }
           } else if (payload.eventType === "DELETE") {
             const deletedSession = payload.old as Session;
-            setSessions((prev) => prev.filter((s) => s.id !== deletedSession.id));
+            setSessions((prev) =>
+              prev.filter((s) => s.id !== deletedSession.id)
+            );
           }
 
           // Refresh the page to update progress, qualified today status, etc.
@@ -87,23 +92,10 @@ export function RealtimeSessionsList({
           });
         }
       )
-      .subscribe((status, err) => {
-        if (status === "SUBSCRIBED") {
-          console.log(`✅ Subscribed to sessions for habit ${habitId}`);
-        } else if (status === "CHANNEL_ERROR") {
-          console.error("❌ Error subscribing to channel:", err);
-        } else if (status === "TIMED_OUT") {
-          console.warn("⏱️ Subscription timed out");
-        } else if (status === "CLOSED") {
-          console.warn("🔌 Channel closed");
-        } else {
-          console.log(`Channel status: ${status}`, err);
-        }
-      });
+      .subscribe();
 
     // Cleanup subscription on unmount
     return () => {
-      console.log(`Unsubscribing from sessions for habit ${habitId}`);
       supabase.removeChannel(channel);
     };
   }, [habitId, router]);
@@ -118,7 +110,9 @@ export function RealtimeSessionsList({
       <h2 className="text-lg font-semibold mb-4">
         Recent Sessions ({sessions.length})
         {isPending && (
-          <span className="ml-2 text-xs text-muted-foreground">(updating...)</span>
+          <span className="ml-2 text-xs text-muted-foreground">
+            (updating...)
+          </span>
         )}
       </h2>
       {sessions.length > 0 ? (
@@ -156,4 +150,3 @@ export function RealtimeSessionsList({
     </div>
   );
 }
-

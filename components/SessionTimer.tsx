@@ -172,8 +172,6 @@ export function SessionTimer({
           filter: `habit_id=eq.${habitId}`,
         },
         async (payload) => {
-          console.log("Timer session update:", payload);
-
           if (
             payload.eventType === "INSERT" ||
             payload.eventType === "UPDATE"

@@ -37,32 +37,17 @@ export function RealtimeDashboardUpdater({
           table: "habit_sessions",
           filter: `owner_id=eq.${userId}`,
         },
-        (payload) => {
-          console.log("Dashboard realtime update received:", payload);
-
+        () => {
           // Refresh the page to update progress, qualified today status, etc.
           startTransition(() => {
             router.refresh();
           });
         }
       )
-      .subscribe((status, err) => {
-        if (status === "SUBSCRIBED") {
-          console.log(`✅ Dashboard subscribed to sessions for user ${userId}`);
-        } else if (status === "CHANNEL_ERROR") {
-          console.error("❌ Error subscribing dashboard channel:", err);
-        } else if (status === "TIMED_OUT") {
-          console.warn("⏱️ Dashboard subscription timed out");
-        } else if (status === "CLOSED") {
-          console.warn("🔌 Dashboard channel closed");
-        } else {
-          console.log(`Dashboard channel status: ${status}`, err);
-        }
-      });
+      .subscribe();
 
     // Cleanup subscription on unmount
     return () => {
-      console.log(`Unsubscribing dashboard for user ${userId}`);
       supabase.removeChannel(channel);
     };
   }, [userId, habitIds, router]);
@@ -70,4 +55,3 @@ export function RealtimeDashboardUpdater({
   // This component doesn't render anything visible
   return null;
 }
-
