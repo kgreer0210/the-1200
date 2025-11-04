@@ -16,23 +16,27 @@ A modern habit tracking application that helps users track their progress toward
 ## Key Features
 
 ### 🎯 Habit Tracking
+
 - Create unlimited habits with custom titles and target minutes
 - Default target of 1200 minutes (20 hours) per habit cycle
 - Visual progress rings showing completion percentage
 - Completion state when target is reached
 
 ### ⏱️ Session Timer
+
 - Built-in timer with start, pause, resume, stop, and reset controls
 - Tracks elapsed time accurately, accounting for paused periods
 - Requires minimum 1 minute to save a session
 - Optional notes for each session (max 280 characters)
 
 ### ✅ Daily Qualification
+
 - "Qualified Today" badge when ≥20 minutes logged in a single day
 - Separate tracking of daily vs. total progress
 - Helps maintain consistent daily practice
 
 ### 📊 Progress Visualization
+
 - Circular progress rings with color coding:
   - Green: 100% complete
   - Blue: 75%+ complete
@@ -42,20 +46,21 @@ A modern habit tracking application that helps users track their progress toward
 - Detailed habit pages with session history
 
 ### 🔄 Real-time Updates
+
 - Supabase Realtime integration for live session updates
 - Automatic refresh when sessions are created, updated, or completed
 - Multi-device synchronization
 
 ### 👑 Admin Dashboard
+
 - View all users and their roles
 - Promote/demote users between admin and customer roles
 - System statistics
-- First user automatically promoted to admin
 
 ### 🔐 Authentication & Security
+
 - Email/password authentication via Supabase Auth
 - Row Level Security (RLS) policies ensuring users only see their own data
-- Admin users can view all user data
 - Profile completion flow for new users
 
 ## Tech Stack
@@ -82,12 +87,14 @@ A modern habit tracking application that helps users track their progress toward
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd the-1200
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    # or
@@ -99,6 +106,7 @@ A modern habit tracking application that helps users track their progress toward
 3. **Set up environment variables**
 
    Create a `.env.local` file in the root directory:
+
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -106,6 +114,7 @@ A modern habit tracking application that helps users track their progress toward
    ```
 
    For local development with Supabase CLI:
+
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_local_anon_key
@@ -114,26 +123,29 @@ A modern habit tracking application that helps users track their progress toward
 4. **Set up Supabase**
 
    **Option A: Local Development (Recommended)**
+
    ```bash
    # Install Supabase CLI
    npm install -g supabase
-   
+
    # Initialize Supabase
    supabase init
-   
+
    # Start local Supabase
    supabase start
-   
+
    # Apply migrations
    supabase migration up
    ```
 
    **Option B: Production Setup**
+
    - Create a Supabase project at [supabase.com](https://supabase.com)
    - Run migrations from `supabase/migrations/` in the SQL Editor
    - Enable Realtime for the `habit_sessions` table
 
 5. **Run the development server**
+
    ```bash
    npm run dev
    # or
@@ -204,6 +216,7 @@ the-1200/
 ### Tracking Sessions
 
 **Using the Timer:**
+
 1. Navigate to a habit detail page
 2. Click "Start Session"
 3. Use pause/resume/stop controls as needed
@@ -211,6 +224,7 @@ the-1200/
 5. Save the session (minimum 1 minute required)
 
 **Manual Logging:**
+
 1. Use quick buttons (10m, 20m, 30m, 60m) or enter custom minutes
 2. Optionally add a note
 3. Submit to log the session
@@ -284,6 +298,7 @@ supabase migration up
 See `Roapmap.md` for detailed feature roadmap and completed tasks.
 
 Future enhancements may include:
+
 - 30-day heatmap visualization
 - Leaderboard and social features
 - Email reminders for daily practice

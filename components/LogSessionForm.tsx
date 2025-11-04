@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const LogSessionSchema = z.object({
-  minutes: z.coerce.number().int().positive().max(300),
+  minutes: z.number().int().positive().max(300),
   note: z.string().max(280).optional(),
 });
 
@@ -114,6 +114,8 @@ export function LogSessionForm({ habitId, disabled = false }: LogSessionFormProp
                     max="300"
                     disabled={disabled || isPending}
                     {...field}
+                    value={field.value ?? 20}
+                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 20)}
                   />
                 </FormControl>
                 <FormMessage />

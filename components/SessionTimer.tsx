@@ -9,7 +9,6 @@ import {
   resumeSession,
   stopSession,
   resetSession,
-  getActiveSession,
 } from "@/app/habits/[id]/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,16 +44,48 @@ export function SessionTimer({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showTwentyMinuteNotification, setShowTwentyMinuteNotification] =
+    useState(false);
+  const [
+    hasShownTwentyMinuteNotification,
+    setHasShownTwentyMinuteNotification,
+  ] = useState(false);
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionRef = useRef<Session | null>(session);
+  const previousElapsedRef = useRef<number>(0);
 
   // Sync session state when initialSession prop changes (e.g., after refresh)
   useEffect(() => {
     setSession(initialSession);
     sessionRef.current = initialSession;
+    // Reset notification flag when session changes
+    setHasShownTwentyMinuteNotification(false);
+    setShowTwentyMinuteNotification(false);
+    // Reset previous elapsed ref to track threshold crossing
+    previousElapsedRef.current = 0;
   }, [initialSession]);
+
+  // Check for 20-minute milestone
+  useEffect(() => {
+    if (
+      session &&
+      session.status === "active" &&
+      !hasShownTwentyMinuteNotification
+    ) {
+      // Only show notification when crossing from < 1200 to >= 1200
+      const previousElapsed = previousElapsedRef.current;
+      if (previousElapsed < 1200 && elapsedSeconds >= 1200) {
+        setShowTwentyMinuteNotification(true);
+        setHasShownTwentyMinuteNotification(true);
+      }
+      previousElapsedRef.current = elapsedSeconds;
+    } else if (!session || session.status !== "active") {
+      // Reset when session ends or is paused
+      previousElapsedRef.current = 0;
+    }
+  }, [elapsedSeconds, session, hasShownTwentyMinuteNotification]);
 
   // Calculate elapsed time
   const calculateElapsedSeconds = (session: Session | null): number => {
@@ -80,10 +111,20 @@ export function SessionTimer({
   // Update timer display
   useEffect(() => {
     sessionRef.current = session;
-    
+
     if (session && session.status === "active") {
       // Update immediately
-      setElapsedSeconds(calculateElapsedSeconds(session));
+      const currentElapsed = calculateElapsedSeconds(session);
+      setElapsedSeconds(currentElapsed);
+
+      // Initialize previousElapsedRef if this is the first update
+      if (previousElapsedRef.current === 0 && currentElapsed >= 1200) {
+        // Already past 20 minutes, mark notification as shown
+        setHasShownTwentyMinuteNotification(true);
+        previousElapsedRef.current = currentElapsed;
+      } else if (previousElapsedRef.current === 0) {
+        previousElapsedRef.current = currentElapsed;
+      }
 
       // Then update every second
       intervalRef.current = setInterval(() => {
@@ -133,7 +174,10 @@ export function SessionTimer({
         async (payload) => {
           console.log("Timer session update:", payload);
 
-          if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+          if (
+            payload.eventType === "INSERT" ||
+            payload.eventType === "UPDATE"
+          ) {
             const updatedSession = payload.new as Session;
             // Only update if this is an active/paused session
             if (
@@ -167,7 +211,9 @@ export function SessionTimer({
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const handleStart = async () => {
@@ -211,10 +257,46 @@ export function SessionTimer({
     });
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     if (!session) return;
+    setError(null);
+
+    // If session is active, pause it first
+    if (session.status === "active") {
+      startTransition(async () => {
+        const result = await pauseSession(session.id);
+        if (result.ok) {
+          setSession(result.session);
+          setNote("");
+          setShowSaveDialog(true);
+          router.refresh();
+        } else {
+          setError(result.error || "Failed to pause session");
+        }
+      });
+    } else {
+      // Already paused, just show the dialog
+      setNote("");
+      setShowSaveDialog(true);
+    }
+  };
+
+  const handleCancelSave = async () => {
+    setShowSaveDialog(false);
     setNote("");
-    setShowSaveDialog(true);
+
+    // If session is paused (from clicking Stop), resume it
+    if (session && session.status === "paused") {
+      startTransition(async () => {
+        const result = await resumeSession(session.id);
+        if (result.ok) {
+          setSession(result.session);
+          router.refresh();
+        } else {
+          setError(result.error || "Failed to resume session");
+        }
+      });
+    }
   };
 
   const handleSaveSession = async () => {
@@ -380,7 +462,9 @@ export function SessionTimer({
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="note">Note (optional)</Label>
+                <Label htmlFor="note">
+                  What did you learn today? (optional)
+                </Label>
                 <Input
                   id="note"
                   type="text"
@@ -396,10 +480,7 @@ export function SessionTimer({
               <div className="flex gap-2 justify-end">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setShowSaveDialog(false);
-                    setNote("");
-                  }}
+                  onClick={handleCancelSave}
                   disabled={isPending}
                 >
                   Cancel
@@ -445,7 +526,30 @@ export function SessionTimer({
           </div>
         </div>
       )}
+
+      {/* 20-Minute Goal Achievement Notification */}
+      {showTwentyMinuteNotification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎉</div>
+              <h3 className="text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
+                Daily Goal Achieved!
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                You've reached 20 minutes! Your timer is still running - keep
+                going!
+              </p>
+              <Button
+                onClick={() => setShowTwentyMinuteNotification(false)}
+                className="w-full"
+              >
+                Awesome!
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
-

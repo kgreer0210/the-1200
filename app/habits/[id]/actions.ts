@@ -185,10 +185,8 @@ export async function pauseSession(sessionId: string) {
     return { ok: false, error: "Session is not active" };
   }
 
-  // Calculate paused duration if there was a previous pause
   const now = new Date();
   const pausedAt = now.toISOString();
-  const pausedDurationSeconds = session.paused_duration_seconds || 0;
 
   const { data: updatedSession, error } = await supabase
     .from("habit_sessions")

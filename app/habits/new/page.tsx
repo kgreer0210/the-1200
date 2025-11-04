@@ -20,7 +20,7 @@ import Link from "next/link";
 
 const CreateHabitSchema = z.object({
   title: z.string().min(1, "Title is required").max(80, "Title must be 80 characters or less"),
-  target_minutes: z.coerce.number().int().positive().default(1200),
+  target_minutes: z.number().int().positive(),
 });
 
 type CreateHabitFormValues = z.infer<typeof CreateHabitSchema>;
@@ -106,6 +106,8 @@ export default function NewHabitPage() {
                       min="1"
                       disabled={isPending}
                       {...field}
+                      value={field.value ?? 1200}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 1200)}
                     />
                   </FormControl>
                   <FormDescription>
