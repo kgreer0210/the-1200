@@ -213,7 +213,7 @@ export function HabitCard({
               )}
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <ProgressRing percentage={percentage} size={80} strokeWidth={6} />
           </div>
         </div>
