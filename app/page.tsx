@@ -90,8 +90,8 @@ export default async function HomePage() {
             <Image
               src="/logo.png"
               alt="THE 1200 Logo"
-              width={120}
-              height={48}
+              width={180}
+              height={72}
               priority
               className="h-auto"
             />
