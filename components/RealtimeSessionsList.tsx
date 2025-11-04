@@ -12,6 +12,7 @@ interface Session {
   minutes: number;
   note: string | null;
   status?: "active" | "paused" | "completed";
+  session_type?: "qualified" | "partial";
 }
 
 interface RealtimeSessionsListProps {
@@ -123,8 +124,15 @@ export function RealtimeSessionsList({
               className="flex items-start justify-between gap-4 py-3 border-b last:border-0"
             >
               <div className="flex-1">
-                <div className="font-medium">
-                  {session.minutes} minute{session.minutes !== 1 ? "s" : ""}
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">
+                    {session.minutes} minute{session.minutes !== 1 ? "s" : ""}
+                  </span>
+                  {session.session_type === "partial" && (
+                    <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                      Partial
+                    </span>
+                  )}
                 </div>
                 {session.note && (
                   <p className="text-sm text-muted-foreground mt-1">

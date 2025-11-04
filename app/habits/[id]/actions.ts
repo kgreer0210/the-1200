@@ -50,11 +50,28 @@ export async function logSession(habitId: string, formData: FormData) {
     return { ok: false, error: "Unauthorized" };
   }
 
+  // Get habit's cycle_number
+  const { data: habitWithCycle, error: habitCycleError } = await supabase
+    .from("habits")
+    .select("cycle_number")
+    .eq("id", habitId)
+    .single();
+
+  if (habitCycleError || !habitWithCycle) {
+    return { ok: false, error: "Failed to fetch habit cycle" };
+  }
+
+  // Determine session type: < 20 minutes = partial, >= 20 minutes = qualified
+  const sessionType = parsed.data.minutes < 20 ? "partial" : "qualified";
+
   const { error } = await supabase.from("habit_sessions").insert({
     habit_id: habitId,
     owner_id: habit.owner_id, // Use the habit's owner_id, not the current user (for admin logging)
     minutes: parsed.data.minutes,
     note: parsed.data.note,
+    status: "completed",
+    session_type: sessionType,
+    cycle_number: habitWithCycle.cycle_number,
   });
 
   if (error) {
@@ -141,6 +158,17 @@ export async function startSession(habitId: string) {
     return { ok: false, error: "A session is already in progress" };
   }
 
+  // Get habit's cycle_number
+  const { data: habit, error: habitError } = await supabase
+    .from("habits")
+    .select("cycle_number")
+    .eq("id", habitId)
+    .single();
+
+  if (habitError || !habit) {
+    return { ok: false, error: "Failed to fetch habit" };
+  }
+
   const { data: session, error } = await supabase
     .from("habit_sessions")
     .insert({
@@ -149,6 +177,7 @@ export async function startSession(habitId: string) {
       status: "active",
       started_at: new Date().toISOString(),
       paused_duration_seconds: 0,
+      cycle_number: habit.cycle_number,
     })
     .select()
     .single();
@@ -276,7 +305,7 @@ export async function stopSession(sessionId: string, formData: FormData) {
     return { ok: false, error: "Invalid input" };
   }
 
-  // Get the session
+  // Get the session with habit info
   const { data: session, error: fetchError } = await supabase
     .from("habit_sessions")
     .select("*, habit_id")
@@ -290,6 +319,17 @@ export async function stopSession(sessionId: string, formData: FormData) {
 
   if (session.status === "completed") {
     return { ok: false, error: "Session is already completed" };
+  }
+
+  // Get habit to get cycle_number
+  const { data: habit, error: habitError } = await supabase
+    .from("habits")
+    .select("cycle_number, target_minutes")
+    .eq("id", session.habit_id)
+    .single();
+
+  if (habitError || !habit) {
+    return { ok: false, error: "Habit not found" };
   }
 
   // Calculate elapsed time in seconds
@@ -315,6 +355,9 @@ export async function stopSession(sessionId: string, formData: FormData) {
     return { ok: false, error: "Session must be at least 1 minute long" };
   }
 
+  // Determine session type: < 20 minutes = partial, >= 20 minutes = qualified
+  const sessionType = minutes < 20 ? "partial" : "qualified";
+
   const { data: updatedSession, error } = await supabase
     .from("habit_sessions")
     .update({
@@ -323,6 +366,8 @@ export async function stopSession(sessionId: string, formData: FormData) {
       note: parsed.data.note || null,
       paused_at: null,
       paused_duration_seconds: totalPausedSeconds,
+      session_type: sessionType,
+      cycle_number: habit.cycle_number,
     })
     .eq("id", sessionId)
     .select()
@@ -332,9 +377,24 @@ export async function stopSession(sessionId: string, formData: FormData) {
     return { ok: false, error: "Failed to stop session: " + error.message };
   }
 
+  // Check if cycle is complete (only for qualified sessions)
+  let cycleComplete = false;
+  if (sessionType === "qualified") {
+    // Get total qualified minutes for current cycle
+    const { data: progressData, error: progressError } = await supabase
+      .from("habit_progress")
+      .select("total_minutes, target_minutes")
+      .eq("habit_id", session.habit_id)
+      .single();
+
+    if (!progressError && progressData) {
+      cycleComplete = progressData.total_minutes >= progressData.target_minutes;
+    }
+  }
+
   revalidatePath(`/habits/${session.habit_id}`);
   revalidatePath("/");
-  return { ok: true, session: updatedSession };
+  return { ok: true, session: updatedSession, cycleComplete };
 }
 
 export async function resetSession(sessionId: string) {
@@ -368,6 +428,72 @@ export async function resetSession(sessionId: string) {
   }
 
   revalidatePath(`/habits/${session.habit_id}`);
+  return { ok: true };
+}
+
+export async function restartCycle(habitId: string) {
+  const check = await checkHabitAccess(habitId);
+  if (!check.ok) {
+    return { ok: false, error: check.error };
+  }
+  const { supabase, ownerId } = check;
+
+  // Get current cycle number
+  const { data: habit, error: habitError } = await supabase
+    .from("habits")
+    .select("cycle_number")
+    .eq("id", habitId)
+    .single();
+
+  if (habitError || !habit) {
+    return { ok: false, error: "Habit not found" };
+  }
+
+  // Increment cycle_number
+  const { error: updateError } = await supabase
+    .from("habits")
+    .update({ cycle_number: habit.cycle_number + 1 })
+    .eq("id", habitId);
+
+  if (updateError) {
+    return { ok: false, error: "Failed to restart cycle: " + updateError.message };
+  }
+
+  revalidatePath(`/habits/${habitId}`);
+  revalidatePath("/");
+  return { ok: true };
+}
+
+export async function extendChallenge(habitId: string) {
+  const check = await checkHabitAccess(habitId);
+  if (!check.ok) {
+    return { ok: false, error: check.error };
+  }
+  const { supabase, ownerId } = check;
+
+  // Get current cycle number
+  const { data: habit, error: habitError } = await supabase
+    .from("habits")
+    .select("cycle_number")
+    .eq("id", habitId)
+    .single();
+
+  if (habitError || !habit) {
+    return { ok: false, error: "Habit not found" };
+  }
+
+  // Increment cycle_number (same as restart, but keeps all progress)
+  const { error: updateError } = await supabase
+    .from("habits")
+    .update({ cycle_number: habit.cycle_number + 1 })
+    .eq("id", habitId);
+
+  if (updateError) {
+    return { ok: false, error: "Failed to extend challenge: " + updateError.message };
+  }
+
+  revalidatePath(`/habits/${habitId}`);
+  revalidatePath("/");
   return { ok: true };
 }
 

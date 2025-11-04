@@ -8,6 +8,8 @@ import { isAdmin } from "@/lib/supabase/admin";
 import { LogOutIcon } from "lucide-react";
 import { signOut } from "@/app/actions";
 import Image from "next/image";
+import { copy } from "@/lib/copy";
+import { FAQ } from "@/components/FAQ";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -52,6 +54,7 @@ export default async function HomePage() {
         .eq("habit_id", habit.habit_id)
         .eq("owner_id", user.id)
         .eq("status", "completed")
+        .eq("session_type", "qualified")  // Only count qualified sessions
         .gte("started_at", today.toISOString())
         .lt("started_at", tomorrow.toISOString());
 
@@ -68,10 +71,28 @@ export default async function HomePage() {
         .in("status", ["active", "paused"])
         .maybeSingle();
 
+      // Fetch streak data
+      const { data: streakData } = await supabase
+        .from("habit_streaks")
+        .select("current_streak, longest_streak")
+        .eq("habit_id", habit.habit_id)
+        .eq("owner_id", user.id)
+        .maybeSingle();
+
+      // Fetch achievement count
+      const { count: achievementCount } = await supabase
+        .from("user_achievements")
+        .select("*", { count: "exact", head: true })
+        .eq("habit_id", habit.habit_id)
+        .eq("user_id", user.id);
+
       return {
         ...habit,
         qualifiedToday,
         activeSession: activeSession || null,
+        currentStreak: streakData?.current_streak || 0,
+        longestStreak: streakData?.longest_streak || 0,
+        achievementCount: achievementCount || 0,
       };
     })
   );
@@ -98,10 +119,10 @@ export default async function HomePage() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold">
-              {profile?.first_name} {profile?.last_name}&apos;s Habits
+              {copy.dashboard.title(`${profile?.first_name || ""} ${profile?.last_name || ""}`)}
             </h1>
             <p className="text-muted-foreground mt-1">
-              Track your progress toward 1200 minutes
+              {copy.dashboard.subtitle}
             </p>
           </div>
         </div>
@@ -133,14 +154,47 @@ export default async function HomePage() {
       </div>
 
       {habitsWithQualified.length === 0 ? (
-        <div className="rounded-lg border bg-card p-12 text-center">
-          <h2 className="text-xl font-semibold mb-2">No habits yet</h2>
-          <p className="text-muted-foreground mb-6">
-            Create your first habit to start tracking your progress.
-          </p>
-          <Button asChild>
-            <Link href="/habits/new">Create Your First Habit</Link>
-          </Button>
+        <div className="space-y-8">
+          {/* Hero Section */}
+          <div className="rounded-lg border bg-card p-8 text-center">
+            <h1 className="text-3xl font-bold mb-3">{copy.hero.h1}</h1>
+            <p className="text-muted-foreground text-base mb-6 max-w-2xl mx-auto">
+              {copy.hero.subhead}
+            </p>
+          </div>
+
+          {/* How it works */}
+          <div className="rounded-lg border bg-card p-8">
+            <h2 className="text-xl font-semibold mb-4 text-center">{copy.howItWorks.title}</h2>
+            <ul className="space-y-3 max-w-xl mx-auto">
+              {copy.howItWorks.bullets.map((bullet, index) => (
+                <li key={index} className="flex items-start gap-3">
+                  <span className="text-primary font-semibold mt-0.5">{index + 1}.</span>
+                  <span className="text-muted-foreground">{bullet}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Why 20 hours */}
+          <div className="rounded-lg border bg-card p-6">
+            <h3 className="text-lg font-semibold mb-2">{copy.why20Hours.title}</h3>
+            <p className="text-sm text-muted-foreground">{copy.why20Hours.text}</p>
+          </div>
+
+          {/* FAQ */}
+          <FAQ />
+
+          {/* CTA */}
+          <div className="rounded-lg border bg-card p-12 text-center">
+            <h2 className="text-xl font-semibold mb-2">{copy.dashboard.emptyState.ctaTitle}</h2>
+            <p className="text-muted-foreground mb-6">
+              {copy.dashboard.emptyState.ctaDescription}
+            </p>
+            <Button asChild>
+              <Link href="/habits/new">{copy.dashboard.emptyState.ctaButton}</Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
@@ -151,8 +205,12 @@ export default async function HomePage() {
               title={habit.title}
               totalMinutes={habit.total_minutes}
               targetMinutes={habit.target_minutes}
+              cycleNumber={habit.cycle_number}
               qualifiedToday={habit.qualifiedToday}
               activeSession={habit.activeSession}
+              currentStreak={habit.currentStreak}
+              longestStreak={habit.longestStreak}
+              achievementCount={habit.achievementCount}
             />
           ))}
         </div>

@@ -15,6 +15,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { copy } from "@/lib/copy";
 
 const profileSchema = z.object({
   first_name: z.string().min(1, "First name is required").max(50, "First name is too long"),
@@ -55,11 +56,18 @@ export default function OnboardingPage() {
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Welcome!</h1>
-          <p className="text-muted-foreground mt-2">
-            Let's complete your profile. Tell us your name.
-          </p>
+        <div className="text-center space-y-4">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold">{copy.onboarding.title}</h1>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto px-4">
+              {copy.onboarding.description}
+            </p>
+          </div>
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-muted-foreground text-sm">
+              {copy.onboarding.profilePrompt}
+            </p>
+          </div>
         </div>
 
         <Form {...form}>

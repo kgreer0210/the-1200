@@ -3,8 +3,11 @@ import { redirect, notFound } from "next/navigation";
 import { ProgressRing } from "@/components/ProgressRing";
 import { SessionTimer } from "@/components/SessionTimer";
 import { RealtimeSessionsList } from "@/components/RealtimeSessionsList";
+import { StreakDisplay } from "@/components/StreakDisplay";
+import { AchievementsList } from "@/components/AchievementsList";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { copy } from "@/lib/copy";
 
 interface HabitDetailPageProps {
   params: Promise<{ id: string }>;
@@ -66,7 +69,7 @@ export default async function HabitDetailPage({
     .order("started_at", { ascending: false })
     .limit(50);
 
-  // Calculate "qualified today" (only count completed sessions)
+  // Calculate "qualified today" (only count qualified sessions)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
@@ -78,12 +81,48 @@ export default async function HabitDetailPage({
     .eq("habit_id", id)
     .eq("owner_id", habit.owner_id)
     .eq("status", "completed")
+    .eq("session_type", "qualified")  // Only count qualified sessions
     .gte("started_at", today.toISOString())
     .lt("started_at", tomorrow.toISOString());
 
   const totalMinutesToday =
     sessionsToday?.reduce((sum, s) => sum + (s.minutes || 0), 0) || 0;
   const qualifiedToday = totalMinutesToday >= 20;
+
+  // Fetch streak data
+  const { data: streakData } = await supabase
+    .from("habit_streaks")
+    .select("current_streak, longest_streak")
+    .eq("habit_id", id)
+    .eq("owner_id", habit.owner_id)
+    .maybeSingle();
+
+  const currentStreak = streakData?.current_streak || 0;
+  const longestStreak = streakData?.longest_streak || 0;
+
+  // Fetch all achievements with unlock status
+  const { data: allAchievements } = await supabase
+    .from("achievements")
+    .select("*")
+    .order("type, threshold");
+
+  const { data: unlockedAchievements } = await supabase
+    .from("user_achievements")
+    .select("achievement_id, unlocked_at")
+    .eq("habit_id", id)
+    .eq("user_id", habit.owner_id);
+
+  // Combine achievements with unlock status
+  const achievementsWithStatus =
+    allAchievements?.map((achievement) => {
+      const unlocked = unlockedAchievements?.find(
+        (ua) => ua.achievement_id === achievement.id
+      );
+      return {
+        ...achievement,
+        unlocked_at: unlocked?.unlocked_at || null,
+      };
+    }) || [];
 
   const percentage = Math.min(100, (habit.total_minutes / habit.target_minutes) * 100);
   const isCompleted = habit.total_minutes >= habit.target_minutes;
@@ -96,7 +135,7 @@ export default async function HabitDetailPage({
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground"
         >
-          ← Back to dashboard
+          {copy.habitDetail.backLink}
         </Link>
       </div>
 
@@ -109,17 +148,25 @@ export default async function HabitDetailPage({
             </span>{" "}
             / {habit.target_minutes} minutes
           </div>
+          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+            Cycle {habit.cycle_number}
+          </span>
           {qualifiedToday && (
             <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-              ✓ Qualified today ({totalMinutesToday}m)
+              {copy.habitDetail.qualifiedToday(totalMinutesToday)}
             </span>
           )}
           {isCompleted && (
             <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-              🎉 Cycle completed!
+              {copy.habitDetail.cycleCompleted}
             </span>
           )}
         </div>
+        {!isCompleted && (
+          <p className="text-sm text-muted-foreground mt-3">
+            {copy.habitDetail.progressDescription}
+          </p>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 mb-8">
@@ -141,6 +188,25 @@ export default async function HabitDetailPage({
           habitId={id}
           initialSession={activeSession}
           disabled={isCompleted}
+        />
+      </div>
+
+      {/* Streak Display */}
+      <div className="rounded-lg border bg-card p-6 shadow-sm mb-8">
+        <h2 className="text-lg font-semibold mb-4">Streak</h2>
+        <StreakDisplay
+          currentStreak={currentStreak}
+          longestStreak={longestStreak}
+        />
+      </div>
+
+      {/* Achievements */}
+      <div className="rounded-lg border bg-card p-6 shadow-sm mb-8">
+        <h2 className="text-lg font-semibold mb-4">Achievements</h2>
+        <AchievementsList
+          achievements={achievementsWithStatus}
+          currentStreak={currentStreak}
+          totalMinutes={habit.total_minutes}
         />
       </div>
 

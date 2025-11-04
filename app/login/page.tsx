@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import Image from "next/image";
+import { copy } from "@/lib/copy";
 
 const loginSchema = z.object({
   email: z.email("Please enter a valid email address"),
@@ -100,7 +101,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-4">
-          <div className="flex flex-col items-center space-y-3">
+          <div className="flex flex-col items-center space-y-4">
             <Image
               src="/logo.png"
               alt="THE 1200 Logo"
@@ -109,14 +110,13 @@ export default function LoginPage() {
               priority
               className="h-auto"
             />
-            <p className="text-muted-foreground text-sm font-medium italic">
-              20 min a day for 20 hours = ✨ Your new habit! ✨
-            </p>
+            <div className="space-y-3 text-center">
+              <h1 className="text-2xl font-bold">{copy.hero.h1}</h1>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto px-4">
+                {copy.hero.subhead}
+              </p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold">Welcome</h1>
-          <p className="text-muted-foreground mt-2">
-            Sign in to your account or create a new one
-          </p>
         </div>
 
         <Tabs defaultValue="login" className="w-full">

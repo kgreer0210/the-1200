@@ -9,11 +9,14 @@ import {
   resumeSession,
   stopSession,
   resetSession,
+  restartCycle,
+  extendChallenge,
 } from "@/app/habits/[id]/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { copy } from "@/lib/copy";
 
 interface Session {
   id: string;
@@ -44,6 +47,9 @@ export function SessionTimer({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showStayCourseModal, setShowStayCourseModal] = useState(false);
+  const [showCycleCompleteModal, setShowCycleCompleteModal] = useState(false);
+  const [cycleNumber, setCycleNumber] = useState<number | null>(null);
   const [showTwentyMinuteNotification, setShowTwentyMinuteNotification] =
     useState(false);
   const [
@@ -259,7 +265,30 @@ export function SessionTimer({
     if (!session) return;
     setError(null);
 
-    // If session is active, pause it first
+    const minutes = Math.floor(elapsedSeconds / 60);
+
+    // If session is < 20 minutes, show "Stay the Course" modal
+    if (minutes < 20) {
+      // If session is active, pause it first
+      if (session.status === "active") {
+        startTransition(async () => {
+          const result = await pauseSession(session.id);
+          if (result.ok) {
+            setSession(result.session);
+            setShowStayCourseModal(true);
+            router.refresh();
+          } else {
+            setError(result.error || "Failed to pause session");
+          }
+        });
+      } else {
+        // Already paused, just show the modal
+        setShowStayCourseModal(true);
+      }
+      return;
+    }
+
+    // >= 20 minutes, proceed with normal save flow
     if (session.status === "active") {
       startTransition(async () => {
         const result = await pauseSession(session.id);
@@ -310,9 +339,76 @@ export function SessionTimer({
         setSession(null);
         setShowSaveDialog(false);
         setNote("");
+        
+        // If cycle is complete, show Cycle Complete modal
+        if (result.cycleComplete) {
+          // Fetch cycle number
+          const supabase = createClient();
+          const { data: habit } = await supabase
+            .from("habits")
+            .select("cycle_number")
+            .eq("id", habitId)
+            .single();
+          
+          if (habit) {
+            setCycleNumber(habit.cycle_number);
+            setShowCycleCompleteModal(true);
+          }
+        }
+        
         router.refresh();
       } else {
         setError(result.error || "Failed to save session");
+      }
+    });
+  };
+
+  const handleStayCourseContinue = async () => {
+    setShowStayCourseModal(false);
+    // Resume session if paused
+    if (session && session.status === "paused") {
+      startTransition(async () => {
+        const result = await resumeSession(session.id);
+        if (result.ok) {
+          setSession(result.session);
+          router.refresh();
+        } else {
+          setError(result.error || "Failed to resume session");
+        }
+      });
+    }
+  };
+
+  const handleStayCourseSavePartial = async () => {
+    setShowStayCourseModal(false);
+    setNote("");
+    setShowSaveDialog(true);
+  };
+
+  const handleRestartCycle = async () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await restartCycle(habitId);
+      if (result.ok) {
+        setShowCycleCompleteModal(false);
+        setCycleNumber(null);
+        router.refresh();
+      } else {
+        setError(result.error || "Failed to restart cycle");
+      }
+    });
+  };
+
+  const handleExtendChallenge = async () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await extendChallenge(habitId);
+      if (result.ok) {
+        setShowCycleCompleteModal(false);
+        setCycleNumber(null);
+        router.refresh();
+      } else {
+        setError(result.error || "Failed to extend challenge");
       }
     });
   };
@@ -525,6 +621,98 @@ export function SessionTimer({
         </div>
       )}
 
+      {/* Stay the Course Modal */}
+      {showStayCourseModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
+            <div className="text-center">
+              <div className="text-4xl mb-4">💪</div>
+              <h3 className="text-xl font-semibold mb-2">
+                {copy.timer.stayCourse.title}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {copy.timer.stayCourse.message}
+              </p>
+              <div className="text-sm text-muted-foreground mb-6">
+                Current time: {minutes} minute{minutes !== 1 ? "s" : ""} ({formatTime(elapsedSeconds)})
+              </div>
+              <div className="flex flex-col gap-2">
+                <Button
+                  onClick={handleStayCourseContinue}
+                  disabled={isPending}
+                  className="w-full"
+                >
+                  {copy.timer.stayCourse.continueButton}
+                </Button>
+                <Button
+                  onClick={handleStayCourseSavePartial}
+                  disabled={isPending}
+                  variant="outline"
+                  className="w-full"
+                >
+                  {copy.timer.stayCourse.savePartialButton}
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {copy.timer.stayCourse.partialNote}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cycle Complete Modal */}
+      {showCycleCompleteModal && cycleNumber !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎉</div>
+              <h3 className="text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
+                {copy.timer.cycleComplete.title}
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                {copy.timer.cycleComplete.message}
+              </p>
+              <div className="space-y-3 mb-6">
+                <div className="rounded-lg border bg-muted/50 p-4 text-left">
+                  <div className="font-semibold mb-1">
+                    {copy.timer.cycleComplete.restartButton}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {copy.timer.cycleComplete.restartDescription(cycleNumber + 1)}
+                  </p>
+                </div>
+                <div className="rounded-lg border bg-muted/50 p-4 text-left">
+                  <div className="font-semibold mb-1">
+                    {copy.timer.cycleComplete.extendButton}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {copy.timer.cycleComplete.extendDescription(cycleNumber + 1)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleRestartCycle}
+                  disabled={isPending}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {copy.timer.cycleComplete.restartButton}
+                </Button>
+                <Button
+                  onClick={handleExtendChallenge}
+                  disabled={isPending}
+                  className="flex-1"
+                >
+                  {copy.timer.cycleComplete.extendButton}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 20-Minute Goal Achievement Notification */}
       {showTwentyMinuteNotification && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -532,17 +720,16 @@ export function SessionTimer({
             <div className="text-center">
               <div className="text-4xl mb-4">🎉</div>
               <h3 className="text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
-                Daily Goal Achieved!
+                {copy.timer.dailyGoalAchieved}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                You've reached 20 minutes! Your timer is still running - keep
-                going!
+                {copy.timer.dailyGoalMessage}
               </p>
               <Button
                 onClick={() => setShowTwentyMinuteNotification(false)}
                 className="w-full"
               >
-                Awesome!
+                {copy.timer.awesomeButton}
               </Button>
             </div>
           </div>

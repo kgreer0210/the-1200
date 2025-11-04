@@ -4,6 +4,8 @@ import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { ProgressRing } from "@/components/ProgressRing";
 import { Button } from "@/components/ui/button";
+import { StreakDisplay } from "@/components/StreakDisplay";
+import { Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
@@ -24,8 +26,12 @@ interface HabitCardProps {
   title: string;
   totalMinutes: number;
   targetMinutes: number;
+  cycleNumber?: number;
   qualifiedToday?: boolean;
   activeSession?: Session | null;
+  currentStreak?: number;
+  longestStreak?: number;
+  achievementCount?: number;
 }
 
 export function HabitCard({
@@ -33,8 +39,12 @@ export function HabitCard({
   title,
   totalMinutes,
   targetMinutes,
+  cycleNumber,
   qualifiedToday = false,
   activeSession: initialActiveSession = null,
+  currentStreak = 0,
+  longestStreak = 0,
+  achievementCount = 0,
 }: HabitCardProps) {
   const [activeSession, setActiveSession] = useState<Session | null>(
     initialActiveSession
@@ -190,6 +200,11 @@ export function HabitCard({
                 </span>{" "}
                 / {targetMinutes} minutes
               </div>
+              {cycleNumber && (
+                <div className="text-xs">
+                  <span className="text-muted-foreground">Cycle {cycleNumber}</span>
+                </div>
+              )}
               {activeSession && activeSession.status === "active" && (
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-mono font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
@@ -209,6 +224,25 @@ export function HabitCard({
                   <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
                     ✓ Qualified today
                   </span>
+                </div>
+              )}
+              {(currentStreak > 0 || achievementCount > 0) && (
+                <div className="flex items-center gap-2 mt-2">
+                  {currentStreak > 0 && (
+                    <StreakDisplay
+                      currentStreak={currentStreak}
+                      longestStreak={longestStreak}
+                      className="text-xs"
+                    />
+                  )}
+                  {achievementCount > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Trophy className="h-3 w-3 text-yellow-500" />
+                      <span className="text-xs text-muted-foreground">
+                        {achievementCount} achievement{achievementCount !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

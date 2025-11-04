@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { copy } from "@/lib/copy";
 
 const CreateHabitSchema = z.object({
   title: z.string().min(1, "Title is required").max(80, "Title must be 80 characters or less"),
@@ -66,9 +67,9 @@ export default function NewHabitPage() {
       </div>
 
       <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <h1 className="text-2xl font-bold mb-2">Create New Habit</h1>
-        <p className="text-muted-foreground mb-6">
-          Track your progress toward 1200 minutes (20 hours) of practice.
+        <h1 className="text-2xl font-bold mb-2">{copy.newHabit.title}</h1>
+        <p className="text-muted-foreground mb-4">
+          {copy.newHabit.description}
         </p>
 
         <Form {...form}>
@@ -78,16 +79,16 @@ export default function NewHabitPage() {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Habit Title</FormLabel>
+                  <FormLabel>{copy.newHabit.habitTitleLabel}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Learn Spanish, Practice Piano"
+                      placeholder={copy.newHabit.habitTitlePlaceholder}
                       disabled={isPending}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    A short name for this habit (max 80 characters)
+                    {copy.newHabit.habitTitleDescription}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -99,7 +100,7 @@ export default function NewHabitPage() {
               name="target_minutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Target Minutes</FormLabel>
+                  <FormLabel>{copy.newHabit.targetMinutesLabel}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -111,7 +112,7 @@ export default function NewHabitPage() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Total minutes to reach (default: 1200 = 20 hours)
+                    {copy.newHabit.targetMinutesDescription}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -126,7 +127,7 @@ export default function NewHabitPage() {
 
             <div className="flex gap-3">
               <Button type="submit" disabled={isPending} className="flex-1">
-                {isPending ? "Creating..." : "Create Habit"}
+                {isPending ? copy.newHabit.creating : copy.newHabit.createButton}
               </Button>
               <Button
                 type="button"
