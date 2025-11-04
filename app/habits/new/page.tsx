@@ -66,9 +66,9 @@ export default function NewHabitPage() {
         </Link>
       </div>
 
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <h1 className="text-2xl font-bold mb-2">{copy.newHabit.title}</h1>
-        <p className="text-muted-foreground mb-4">
+      <div className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm">
+        <h1 className="text-xl sm:text-2xl font-bold mb-2">{copy.newHabit.title}</h1>
+        <p className="text-muted-foreground mb-4 text-sm sm:text-base">
           {copy.newHabit.description}
         </p>
 
@@ -125,7 +125,7 @@ export default function NewHabitPage() {
               </div>
             )}
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Button type="submit" disabled={isPending} className="flex-1">
                 {isPending ? copy.newHabit.creating : copy.newHabit.createButton}
               </Button>
@@ -134,6 +134,7 @@ export default function NewHabitPage() {
                 variant="outline"
                 disabled={isPending}
                 asChild
+                className="flex-1 sm:flex-initial"
               >
                 <Link href="/">Cancel</Link>
               </Button>

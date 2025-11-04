@@ -107,8 +107,8 @@ export function RealtimeSessionsList({
   }, [initialSessions]);
 
   return (
-    <div className="rounded-lg border bg-card p-6 shadow-sm">
-      <h2 className="text-lg font-semibold mb-4">
+    <div className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm">
+      <h2 className="text-base sm:text-lg font-semibold mb-4">
         Recent Sessions ({sessions.length})
         {isPending && (
           <span className="ml-2 text-xs text-muted-foreground">

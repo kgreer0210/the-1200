@@ -140,27 +140,29 @@ export default async function HabitDetailPage({
       </div>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{habit.title}</h1>
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="text-lg text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-3">{habit.title}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <div className="text-base sm:text-lg text-muted-foreground">
             <span className="font-semibold text-foreground">
               {habit.total_minutes}
             </span>{" "}
             / {habit.target_minutes} minutes
           </div>
-          <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-            Cycle {habit.cycle_number}
-          </span>
-          {qualifiedToday && (
-            <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-              {copy.habitDetail.qualifiedToday(totalMinutesToday)}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs sm:text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+              Cycle {habit.cycle_number}
             </span>
-          )}
-          {isCompleted && (
-            <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-              {copy.habitDetail.cycleCompleted}
-            </span>
-          )}
+            {qualifiedToday && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs sm:text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                {copy.habitDetail.qualifiedToday(totalMinutesToday)}
+              </span>
+            )}
+            {isCompleted && (
+              <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs sm:text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                {copy.habitDetail.cycleCompleted}
+              </span>
+            )}
+          </div>
         </div>
         {!isCompleted && (
           <p className="text-sm text-muted-foreground mt-3">
@@ -171,10 +173,15 @@ export default async function HabitDetailPage({
 
       <div className="grid gap-6 md:grid-cols-2 mb-8">
         {/* Progress Ring */}
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h2 className="text-lg font-semibold mb-4">Progress</h2>
+        <div className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm">
+          <h2 className="text-base sm:text-lg font-semibold mb-4">Progress</h2>
           <div className="flex flex-col items-center justify-center gap-4">
-            <ProgressRing percentage={percentage} size={160} strokeWidth={10} />
+            <div className="hidden sm:block">
+              <ProgressRing percentage={percentage} size={160} strokeWidth={10} />
+            </div>
+            <div className="block sm:hidden">
+              <ProgressRing percentage={percentage} size={140} strokeWidth={10} />
+            </div>
             {!isCompleted && (
               <p className="text-sm text-muted-foreground text-center">
                 {remainingMinutes} minutes remaining
@@ -192,8 +199,8 @@ export default async function HabitDetailPage({
       </div>
 
       {/* Streak Display */}
-      <div className="rounded-lg border bg-card p-6 shadow-sm mb-8">
-        <h2 className="text-lg font-semibold mb-4">Streak</h2>
+      <div className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm mb-8">
+        <h2 className="text-base sm:text-lg font-semibold mb-4">Streak</h2>
         <StreakDisplay
           currentStreak={currentStreak}
           longestStreak={longestStreak}
@@ -201,8 +208,8 @@ export default async function HabitDetailPage({
       </div>
 
       {/* Achievements */}
-      <div className="rounded-lg border bg-card p-6 shadow-sm mb-8">
-        <h2 className="text-lg font-semibold mb-4">Achievements</h2>
+      <div className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm mb-8">
+        <h2 className="text-base sm:text-lg font-semibold mb-4">Achievements</h2>
         <AchievementsList
           achievements={achievementsWithStatus}
           currentStreak={currentStreak}

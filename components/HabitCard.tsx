@@ -183,14 +183,14 @@ export function HabitCard({
     <Link href={`/habits/${habitId}`}>
       <div
         className={cn(
-          "group relative rounded-lg border bg-card p-6 shadow-sm transition-all hover:shadow-md",
+          "group relative rounded-lg border bg-card p-4 sm:p-6 shadow-sm transition-all hover:shadow-md",
           isCompleted &&
             "border-green-500/50 bg-green-50/50 dark:bg-green-950/20"
         )}
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-foreground mb-2 truncate">
+            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2 truncate">
               {title}
             </h3>
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
@@ -248,12 +248,17 @@ export function HabitCard({
             </div>
           </div>
           <div className="shrink-0">
-            <ProgressRing percentage={percentage} size={80} strokeWidth={6} />
+            <div className="hidden sm:block">
+              <ProgressRing percentage={percentage} size={80} strokeWidth={6} />
+            </div>
+            <div className="block sm:hidden">
+              <ProgressRing percentage={percentage} size={70} strokeWidth={6} />
+            </div>
           </div>
         </div>
         {isCompleted && (
           <div className="mt-4 pt-4 border-t border-green-200 dark:border-green-800">
-            <p className="text-sm font-medium text-green-700 dark:text-green-400">
+            <p className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-400">
               🎉 Cycle completed!
             </p>
           </div>

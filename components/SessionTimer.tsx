@@ -438,8 +438,8 @@ export function SessionTimer({
 
   return (
     <>
-      <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">Session Timer</h3>
+      <div className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm">
+        <h3 className="text-base sm:text-lg font-semibold mb-4">Session Timer</h3>
 
         {error && (
           <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive mb-4">
@@ -450,7 +450,7 @@ export function SessionTimer({
         {!session ? (
           // No active session - show start button
           <div className="flex flex-col items-center justify-center gap-4 py-8">
-            <p className="text-muted-foreground text-center">
+            <p className="text-muted-foreground text-center text-sm sm:text-base">
               Start a timer to track your session
             </p>
             <Button
@@ -469,7 +469,7 @@ export function SessionTimer({
             <div className="flex flex-col items-center justify-center gap-2">
               <div
                 className={cn(
-                  "text-6xl font-mono font-bold",
+                  "text-4xl sm:text-6xl font-mono font-bold",
                   session.status === "paused" && "text-muted-foreground"
                 )}
               >
@@ -540,9 +540,9 @@ export function SessionTimer({
 
       {/* Save Dialog */}
       {showSaveDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Save Session</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg border shadow-lg p-4 sm:p-6 w-full max-w-md mx-4">
+            <h3 className="text-base sm:text-lg font-semibold mb-4">Save Session</h3>
             <p className="text-sm text-muted-foreground mb-4">
               Elapsed time: {minutes} minute{minutes !== 1 ? "s" : ""} (
               {formatTime(elapsedSeconds)})
@@ -571,17 +571,19 @@ export function SessionTimer({
                 />
               </div>
 
-              <div className="flex gap-2 justify-end">
+              <div className="flex flex-col sm:flex-row gap-2 justify-end">
                 <Button
                   variant="outline"
                   onClick={handleCancelSave}
                   disabled={isPending}
+                  className="w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleSaveSession}
                   disabled={disabled || isPending || !canSave}
+                  className="w-full sm:w-auto"
                 >
                   {isPending ? "Saving..." : "Save Session"}
                 </Button>
@@ -593,19 +595,20 @@ export function SessionTimer({
 
       {/* Reset Confirmation Dialog */}
       {showResetDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-2">Reset Session?</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg border shadow-lg p-4 sm:p-6 w-full max-w-md mx-4">
+            <h3 className="text-base sm:text-lg font-semibold mb-2">Reset Session?</h3>
             <p className="text-sm text-muted-foreground mb-4">
               This will delete the current session and you'll lose all progress.
               This action cannot be undone.
             </p>
 
-            <div className="flex gap-2 justify-end">
+            <div className="flex flex-col sm:flex-row gap-2 justify-end">
               <Button
                 variant="outline"
                 onClick={() => setShowResetDialog(false)}
                 disabled={isPending}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
@@ -613,6 +616,7 @@ export function SessionTimer({
                 variant="destructive"
                 onClick={handleConfirmReset}
                 disabled={disabled || isPending}
+                className="w-full sm:w-auto"
               >
                 {isPending ? "Resetting..." : "Reset Session"}
               </Button>
@@ -623,8 +627,8 @@ export function SessionTimer({
 
       {/* Stay the Course Modal */}
       {showStayCourseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg border shadow-lg p-4 sm:p-6 w-full max-w-md mx-4">
             <div className="text-center">
               <div className="text-4xl mb-4">💪</div>
               <h3 className="text-xl font-semibold mb-2">
@@ -663,11 +667,11 @@ export function SessionTimer({
 
       {/* Cycle Complete Modal */}
       {showCycleCompleteModal && cycleNumber !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg border shadow-lg p-4 sm:p-6 w-full max-w-md mx-4">
             <div className="text-center">
               <div className="text-4xl mb-4">🎉</div>
-              <h3 className="text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
                 {copy.timer.cycleComplete.title}
               </h3>
               <p className="text-sm text-muted-foreground mb-6">
@@ -675,7 +679,7 @@ export function SessionTimer({
               </p>
               <div className="space-y-3 mb-6">
                 <div className="rounded-lg border bg-muted/50 p-4 text-left">
-                  <div className="font-semibold mb-1">
+                  <div className="font-semibold mb-1 text-sm sm:text-base">
                     {copy.timer.cycleComplete.restartButton}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -683,7 +687,7 @@ export function SessionTimer({
                   </p>
                 </div>
                 <div className="rounded-lg border bg-muted/50 p-4 text-left">
-                  <div className="font-semibold mb-1">
+                  <div className="font-semibold mb-1 text-sm sm:text-base">
                     {copy.timer.cycleComplete.extendButton}
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -691,7 +695,7 @@ export function SessionTimer({
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   onClick={handleRestartCycle}
                   disabled={isPending}
@@ -715,11 +719,11 @@ export function SessionTimer({
 
       {/* 20-Minute Goal Achievement Notification */}
       {showTwentyMinuteNotification && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-card rounded-lg border shadow-lg p-6 w-full max-w-md mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-card rounded-lg border shadow-lg p-4 sm:p-6 w-full max-w-md mx-4">
             <div className="text-center">
               <div className="text-4xl mb-4">🎉</div>
-              <h3 className="text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2 text-green-600 dark:text-green-400">
                 {copy.timer.dailyGoalAchieved}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
